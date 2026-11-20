@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HRIS Data Quality & Governance Intelligence</title>
+<style>
+:root{--bg:#f4f6fa;--panel:#fff;--ink:#182230;--muted:#657286;--line:#e4e9f0;--navy:#17365d;--blue:#2864dc;--teal:#0f8b8d;--amber:#c77b13;--red:#c43d4b;--green:#16835d;--shadow:0 6px 22px rgba(25,42,70,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px/1.45 Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(115deg,#142b4b,#214d79);color:#fff;padding:26px max(24px,calc((100vw - 1440px)/2));}
+header .eyebrow{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;opacity:.78;font-weight:700}
+header h1{font-size:27px;margin:7px 0 5px;font-weight:700}header p{margin:0;color:#d9e4f2;max-width:850px}
+.wrap{max-width:1440px;margin:22px auto;padding:0 22px 40px}
+.notice{background:#fff8e9;border:1px solid #f0d7a6;color:#6e4b12;border-radius:10px;padding:11px 14px;margin-bottom:17px;font-size:12px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+select,input,button{font:inherit;border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:white;color:var(--ink)}
+button{cursor:pointer;font-weight:600}button.primary{background:var(--blue);border-color:var(--blue);color:#fff}button:hover{filter:brightness(.97)}
+.grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:15px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.55px}.kpi-value{font-size:27px;font-weight:750;margin:7px 0 3px}.kpi-sub{font-size:11px;color:var(--muted)}
+.main{grid-template-columns:1.15fr .85fr;margin-bottom:14px}.bottom{grid-template-columns:1fr 1fr;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 4px}.sub{font-size:11px;color:var(--muted);margin-bottom:14px}
+.barrow{display:grid;grid-template-columns:145px 1fr 42px;gap:9px;align-items:center;margin:11px 0;font-size:12px}
+.track{height:10px;background:#edf1f6;border-radius:20px;overflow:hidden}.fill{height:100%;border-radius:20px;background:var(--blue)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:12px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+canvas{width:100%;height:210px;display:block}
+.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}th{text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;background:#f8fafc;position:sticky;top:0}
+th,td{padding:10px 9px;border-bottom:1px solid var(--line)}tbody tr:hover{background:#f8fbff}
+.pill{display:inline-block;padding:3px 7px;border-radius:30px;font-size:10px;font-weight:700}.high{background:#fdebed;color:#a52d3b}.medium{background:#fff3dd;color:#93600e}.low{background:#e8f5ef;color:#176c4c}.open{background:#eaf0ff;color:#2852ad}.resolved{background:#e8f5ef;color:#176c4c}
+.actions{display:flex;gap:6px}.actions button{font-size:10px;padding:5px 7px}
+.footer{font-size:11px;color:var(--muted);margin-top:18px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.insight{background:#f8fafc;border:1px solid var(--line);border-radius:9px;padding:12px;font-size:12px}.insight strong{display:block;margin-bottom:5px}
+.modalback{display:none;position:fixed;inset:0;background:#101b2c88;align-items:center;justify-content:center;padding:20px;z-index:4}.modal{background:#fff;border-radius:14px;padding:20px;max-width:520px;width:100%;box-shadow:0 20px 60px #0003}.modal h3{margin-top:0}.modal label{display:block;font-size:12px;font-weight:650;margin:12px 0 5px}.modal select,.modal input{width:100%}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.main,.bottom{grid-template-columns:1fr}.insights{grid-template-columns:1fr}}
+@media(max-width:520px){header h1{font-size:21px}.wrap{padding:0 12px 28px}.barrow{grid-template-columns:105px 1fr 30px}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">People systems · Data governance · Operational excellence</div><h1>HRIS Data Quality & Governance Intelligence</h1><p>Monitor employee master data quality, investigate exceptions and manage remediation priorities through a practical HR governance control view.</p></header>
+<div class="wrap">
+<div class="notice"><strong>Demonstration environment:</strong> All employee records and metrics are synthetic and generated for this portfolio prototype. They do not represent a real organisation, actual HRIS data or measured business outcomes.</div>
+<div class="toolbar">
+  <select id="deptFilter" aria-label="Filter department"><option value="All">All departments</option></select>
+  <select id="issueFilter" aria-label="Filter issue"><option value="All">All issue types</option></select>
+  <select id="severityFilter" aria-label="Filter severity"><option value="All">All severities</option><option>High</option><option>Medium</option><option>Low</option></select>
+  <input id="search" placeholder="Search employee ID or issue…" aria-label="Search records">
+  <button id="reset">Reset filters</button><button class="primary" id="export">Export exceptions CSV</button>
+</div>
+<div class="grid kpis">
+ <div class="card"><div class="kpi-label">Employees assessed</div><div class="kpi-value" id="kEmployees">—</div><div class="kpi-sub">Synthetic employee master</div></div>
+ <div class="card"><div class="kpi-label">Data quality score</div><div class="kpi-value" id="kScore">—</div><div class="kpi-sub">Valid checks / applicable checks</div></div>
+ <div class="card"><div class="kpi-label">Records with exceptions</div><div class="kpi-value" id="kException">—</div><div class="kpi-sub" id="kExceptionSub">—</div></div>
+ <div class="card"><div class="kpi-label">High severity exceptions</div><div class="kpi-value" id="kHigh">—</div><div class="kpi-sub">Prioritise for review</div></div>
+ <div class="card"><div class="kpi-label">Open remediation items</div><div class="kpi-value" id="kOpen">—</div><div class="kpi-sub">Requires owner action</div></div>
+</div>
+<div class="grid main">
+ <div class="card"><h2>Exception profile by data domain</h2><div class="sub">Count of detected issues in the current filtered view</div><div id="domainBars"></div></div>
+ <div class="card"><h2>Severity distribution</h2><div class="sub">Exceptions classified by illustrative operational impact</div><canvas id="severityChart" width="520" height="230"></canvas><div class="legend"><span><i class="dot" style="background:#c43d4b"></i>High</span><span><i class="dot" style="background:#d99a31"></i>Medium</span><span><i class="dot" style="background:#16835d"></i>Low</span></div></div>
+</div>
+<div class="grid bottom">
+ <div class="card"><h2>Data quality controls</h2><div class="sub">Illustrative rule-level results. A record can fail more than one rule.</div><div id="ruleBars"></div></div>
+ <div class="card"><h2>Governance insights</h2><div class="sub">Decision prompts based on the current filtered exceptions</div><div class="insights" id="insights"></div></div>
+</div>
+<div class="card">
+ <h2>Exception register</h2><div class="sub">Filter, inspect and update remediation status. Changes remain in this browser session only.</div>
+ <div class="tablewrap"><table><thead><tr><th>Employee ID</th><th>Department</th><th>Data domain</th><th>Exception</th><th>Severity</th><th>Status</th><th>Action</th></tr></thead><tbody id="exceptionRows"></tbody></table></div>
+ <div class="footer"><span id="rowCount">Showing 0 exceptions</span><span>Prototype control logic · Not connected to a live HRIS</span></div>
+</div>
+<div class="footer"><span>Portfolio prototype · HRIS Data Quality & Governance</span><span>Data privacy: synthetic data only · Human review required for corrections</span></div>
+</div>
+<div class="modalback" id="modal"><div class="modal"><h3>Review exception</h3><div id="modalDetail" class="sub"></div><label for="statusEdit">Remediation status</label><select id="statusEdit"><option>Open</option><option>In progress</option><option>Resolved</option><option>Deferred</option></select><label for="ownerEdit">Assigned owner</label><input id="ownerEdit" placeholder="e.g. HR Operations"><label for="noteEdit">Review note</label><input id="noteEdit" placeholder="Document validation or action taken"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px"><button id="cancel">Cancel</button><button class="primary" id="save">Save update</button></div></div></div>
+<script>
+const employees = [
+["E1001","Finance","Singapore","Active"],["E1002","People","Singapore","Active"],["E1003","Operations","Australia","Active"],["E1004","Technology","Singapore","Active"],["E1005","Sales","Malaysia","Active"],["E1006","Operations","Singapore","Active"],["E1007","Finance","Australia","Active"],["E1008","People","Malaysia","Active"],["E1009","Technology","Singapore","Active"],["E1010","Sales","Australia","Active"],["E1011","Operations","Malaysia","Active"],["E1012","Finance","Singapore","Active"],["E1013","People","Australia","Active"],["E1014","Technology","Malaysia","Active"],["E1015","Sales","Singapore","Active"],["E1016","Operations","Australia","Active"],["E1017","Finance","Malaysia","Active"],["E1018","People","Singapore","Active"],["E1019","Technology","Australia","Active"],["E1020","Sales","Malaysia","Active"],["E1021","Operations","Singapore","Active"],["E1022","Finance","Australia","Active"],["E1023","People","Malaysia","Active"],["E1024","Technology","Singapore","Active"],["E1025","Sales","Australia","Active"],["E1026","Operations","Malaysia","Active"],["E1027","Finance","Singapore","Active"],["E1028","People","Australia","Active"],["E1029","Technology","Malaysia","Active"],["E1030","Sales","Singapore","Active"],["E1031","Operations","Australia","Active"],["E1032","Finance","Malaysia","Active"],["E1033","People","Singapore","Active"],["E1034","Technology","Australia","Active"],["E1035","Sales","Malaysia","Active"],["E1036","Operations","Singapore","Active"]
+];
+let exceptions = [
+{emp:"E1001",dept:"Finance",domain:"Personal data",issue:"Missing emergency contact",severity:"Low",status:"Open",owner:"",note:""},
+{emp:"E1002",dept:"People",domain:"Employment",issue:"Missing manager ID",severity:"High",status:"In progress",owner:"HR Operations",note:""},
+{emp:"E1003",dept:"Operations",domain:"Organisation",issue:"Invalid cost centre",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1004",dept:"Technology",domain:"Personal data",issue:"Invalid email format",severity:"Medium",status:"Open",owner:"",note:""},
+{emp:"E1005",dept:"Sales",domain:"Employment",issue:"Missing contract end date",severity:"Medium",status:"Open",owner:"",note:""},
+{emp:"E1006",dept:"Operations",domain:"Organisation",issue:"Inactive department code",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1007",dept:"Finance",domain:"Personal data",issue:"Missing emergency contact",severity:"Low",status:"Resolved",owner:"HR Operations",note:"Validated"},
+{emp:"E1008",dept:"People",domain:"Employment",issue:"Hire date after termination date",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1009",dept:"Technology",domain:"Personal data",issue:"Duplicate personal email",severity:"Medium",status:"In progress",owner:"HR Operations",note:""},
+{emp:"E1010",dept:"Sales",domain:"Organisation",issue:"Missing cost centre",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1011",dept:"Operations",domain:"Employment",issue:"Missing manager ID",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1012",dept:"Finance",domain:"Personal data",issue:"Invalid phone format",severity:"Low",status:"Deferred",owner:"",note:"Pending employee confirmation"},
+{emp:"E1013",dept:"People",domain:"Organisation",issue:"Manager not in active population",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1014",dept:"Technology",domain:"Employment",issue:"Missing employment type",severity:"Medium",status:"Open",owner:"",note:""},
+{emp:"E1015",dept:"Sales",domain:"Personal data",issue:"Invalid email format",severity:"Medium",status:"Open",owner:"",note:""},
+{emp:"E1016",dept:"Operations",domain:"Organisation",issue:"Missing cost centre",severity:"High",status:"In progress",owner:"HRIS",note:""},
+{emp:"E1017",dept:"Finance",domain:"Employment",issue:"Missing manager ID",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1018",dept:"People",domain:"Personal data",issue:"Missing emergency contact",severity:"Low",status:"Resolved",owner:"HR Operations",note:"Validated"},
+{emp:"E1019",dept:"Technology",domain:"Organisation",issue:"Invalid cost centre",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1020",dept:"Sales",domain:"Employment",issue:"Missing employment type",severity:"Medium",status:"Open",owner:"",note:""},
+{emp:"E1021",dept:"Operations",domain:"Personal data",issue:"Duplicate personal email",severity:"Medium",status:"Open",owner:"",note:""},
+{emp:"E1022",dept:"Finance",domain:"Organisation",issue:"Manager not in active population",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1023",dept:"People",domain:"Employment",issue:"Missing contract end date",severity:"Medium",status:"In progress",owner:"HR Operations",note:""},
+{emp:"E1024",dept:"Technology",domain:"Personal data",issue:"Invalid phone format",severity:"Low",status:"Open",owner:"",note:""},
+{emp:"E1025",dept:"Sales",domain:"Organisation",issue:"Inactive department code",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1026",dept:"Operations",domain:"Employment",issue:"Hire date after termination date",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1027",dept:"Finance",domain:"Personal data",issue:"Invalid email format",severity:"Medium",status:"Open",owner:"",note:""},
+{emp:"E1028",dept:"People",domain:"Organisation",issue:"Missing cost centre",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1029",dept:"Technology",domain:"Employment",issue:"Missing manager ID",severity:"High",status:"Open",owner:"",note:""},
+{emp:"E1030",dept:"Sales",domain:"Personal data",issue:"Missing emergency contact",severity:"Low",status:"Open",owner:"",note:""}
+];
+const domains=["Personal data","Employment","Organisation"];
+const rules=[["Required-field completeness",8],["Format validity",9],["Referential integrity",8],["Date logic",2],["Duplicate detection",3]];
+let selected=null;
+const $=id=>document.getElementById(id);
+function initFilters(){
+ [...new Set(employees.map(e=>e[1]))].sort().forEach(v=>$("deptFilter").add(new Option(v,v)));
+ [...new Set(exceptions.map(e=>e.issue))].sort().forEach(v=>$("issueFilter").add(new Option(v,v)));
+ ["deptFilter","issueFilter","severityFilter","search"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));
+ $("reset").onclick=()=>{$("deptFilter").value="All";$("issueFilter").value="All";$("severityFilter").value="All";$("search").value="";render()};
+ $("export").onclick=exportCSV;
+ $("cancel").onclick=closeModal;
+ $("save").onclick=saveModal;
+}
+function filtered(){
+ const d=$("deptFilter").value, i=$("issueFilter").value, s=$("severityFilter").value, q=$("search").value.toLowerCase();
+ return exceptions.filter(x=>(d==="All"||x.dept===d)&&(i==="All"||x.issue===i)&&(s==="All"||x.severity===s)&&(!q||x.emp.toLowerCase().includes(q)||x.issue.toLowerCase().includes(q)));
+}
+function render(){
+ const rows=filtered(), totalEmp=employees.filter(e=>$("deptFilter").value==="All"||e[1]===$("deptFilter").value).length;
+ const unique=new Set(rows.map(x=>x.emp)).size, high=rows.filter(x=>x.severity==="High").length, open=rows.filter(x=>x.status!=="Resolved").length;
+ // Score is based on this prototype's generated rule outcomes, not an enterprise-certified quality measure.
+ const applicable=totalEmp*5, fail=rows.length;
+ const score=Math.max(0,100-(fail/applicable*100*2.2));
+ $("kEmployees").textContent=totalEmp;$("kScore").textContent=score.toFixed(1)+"%";$("kException").textContent=unique;$("kExceptionSub").textContent=(totalEmp?((unique/totalEmp)*100).toFixed(1):"0")+"% of filtered population";$("kHigh").textContent=high;$("kOpen").textContent=open;
+ const byDomain=domains.map(d=>[d,rows.filter(x=>x.domain===d).length]);
+ $("domainBars").innerHTML=byDomain.map(([d,n])=>`<div class="barrow"><span>${d}</span><div class="track"><div class="fill" style="width:${rows.length?n/Math.max(...byDomain.map(x=>x[1]),1)*100:0}%"></div></div><b>${n}</b></div>`).join("");
+ drawSeverity(rows);
+ $("ruleBars").innerHTML=rules.map(([name,n])=>`<div class="barrow"><span>${name}</span><div class="track"><div class="fill" style="width:${n/Math.max(...rules.map(x=>x[1]))*100}%"></div></div><b>${n}</b></div>`).join("");
+ const top=byDomain.slice().sort((a,b)=>b[1]-a[1])[0];
+ const insights=[
+ ["Priority focus",top&&top[1]?`${top[0]} has the highest exception count (${top[1]}). Validate root causes before assigning remediation.`:"No exceptions match these filters."],
+ ["High-risk control",`${high} high-severity items are visible. Review manager, cost-centre and employment-date integrity before downstream use.`],
+ ["Governance action",`${open} items remain unresolved or deferred. Assign accountable owners, due dates and evidence of closure.`]
+ ];
+ $("insights").innerHTML=insights.map(x=>`<div class="insight"><strong>${x[0]}</strong>${x[1]}</div>`).join("");
+ $("exceptionRows").innerHTML=rows.map((x)=>{let idx=exceptions.indexOf(x);return `<tr><td><b>${x.emp}</b></td><td>${x.dept}</td><td>${x.domain}</td><td>${x.issue}</td><td><span class="pill ${x.severity.toLowerCase()}">${x.severity}</span></td><td><span class="pill ${x.status==="Resolved"?"resolved":"open"}">${x.status}</span></td><td><div class="actions"><button onclick="openModal(${idx})">Review</button></div></td></tr>`}).join("");
+ $("rowCount").textContent=`Showing ${rows.length} of ${exceptions.length} exceptions`;
+}
+function drawSeverity(rows){
+ const c=$("severityChart"),ctx=c.getContext("2d"),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+ const vals=["High","Medium","Low"].map(s=>rows.filter(x=>x.severity===s).length),cols=["#c43d4b","#d99a31","#16835d"],sum=vals.reduce((a,b)=>a+b,0)||1;
+ let start=-Math.PI/2; vals.forEach((v,i)=>{let end=start+v/sum*Math.PI*2;ctx.beginPath();ctx.moveTo(165,112);ctx.arc(165,112,82,start,end);ctx.closePath();ctx.fillStyle=cols[i];ctx.fill();start=end});
+ ctx.fillStyle="#182230";ctx.font="bold 24px Arial";ctx.textAlign="center";ctx.fillText(sum===1&&rows.length===0?"0":sum,165,110);
+ ctx.font="12px Arial";ctx.fillStyle="#657286";ctx.fillText("exceptions",165,130);
+}
+function openModal(i){selected=i;const x=exceptions[i];$("modalDetail").textContent=`${x.emp} · ${x.dept} · ${x.issue} · ${x.severity} severity`;$("statusEdit").value=x.status;$("ownerEdit").value=x.owner;$("noteEdit").value=x.note;$("modal").style.display="flex"}
+function closeModal(){$("modal").style.display="none";selected=null}
+function saveModal(){if(selected===null)return;let x=exceptions[selected];x.status=$("statusEdit").value;x.owner=$("ownerEdit").value;x.note=$("noteEdit").value;closeModal();render()}
+function exportCSV(){let rows=filtered(),head=["Employee ID","Department","Data Domain","Exception","Severity","Status","Owner","Review Note"];let csv=[head,...rows.map(x=>[x.emp,x.dept,x.domain,x.issue,x.severity,x.status,x.owner,x.note])].map(r=>r.map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="hris_data_quality_exceptions_demo.csv";a.click();URL.revokeObjectURL(a.href)}
+initFilters();render();
+</script>
+</body></html>
